@@ -2,7 +2,6 @@
 
 
 #include "RogueCharacter.h"
-
 #include "EnhancedInputComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
