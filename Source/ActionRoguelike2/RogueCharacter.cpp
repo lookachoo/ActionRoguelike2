@@ -35,8 +35,6 @@ void ARogueCharacter::Move(const FInputActionValue& InValue)
 {
 	FVector2D InputValue = InValue.Get<FVector2D>();
 	
-	FVector MoveDirection = FVector(InputValue.X, InputValue.Y, 0.0f);
-	
 	FRotator ControlRot = GetControlRotation();
 	ControlRot.Pitch = 0.0f;
 	
