@@ -6,12 +6,14 @@
 #include "GameFramework/Character.h"
 #include "RogueCharacter.generated.h"
 
+class UNiagaraSystem;
 class ARogueProjectileMagic;
 struct FInputActionInstance;
 struct FInputActionValue;
 class UInputAction;
 class USpringArmComponent;
 class UCameraComponent;
+class UAnimMontage;
 
 UCLASS()
 class ACTIONROGUELIKE2_API ARogueCharacter : public ACharacter
@@ -27,8 +29,17 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="PrimaryAttack")
 	TSubclassOf<ARogueProjectileMagic> ProjectileClass;
 	
+	UPROPERTY(EditDefaultsOnly, Category="PrimaryAttack")
+	TObjectPtr<UNiagaraSystem> CastingEffect;
+	
+	UPROPERTY(EditDefaultsOnly, Category="PrimaryAttack")
+	TObjectPtr<USoundBase> CastingSound;
+	
 	UPROPERTY(VisibleAnywhere, Category = "PrimaryAttack")
 	FName MuzzleSocketName;
+	
+	UPROPERTY(EditDefaultsOnly, Category="PrimaryAttack")
+	TObjectPtr<UAnimMontage> AttackMontage;
 	
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> Input_Move;
@@ -38,6 +49,9 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> Input_PrimaryAttack;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	TObjectPtr<UInputAction> Input_Jump;
 	
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	TObjectPtr<UCameraComponent> CameraComponent;
@@ -52,7 +66,11 @@ protected:
 	
 	void Look(const FInputActionInstance& InValue);
 	
+	void RogueJump();
+	
 	void PrimaryAttack();
+	
+	void AttackTimerElapsed();
 	
 public:
 	// Called every frame

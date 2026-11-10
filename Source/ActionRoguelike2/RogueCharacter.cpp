@@ -3,8 +3,10 @@
 
 #include "RogueCharacter.h"
 #include "EnhancedInputComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Projectiles/RogueProjectileMagic.h"
 
 
@@ -35,6 +37,7 @@ void ARogueCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	EnhancedInput->BindAction(Input_Look, ETriggerEvent::Triggered, this, &ARogueCharacter::Look);
 	
 	EnhancedInput->BindAction(Input_PrimaryAttack, ETriggerEvent::Triggered, this, &ARogueCharacter::PrimaryAttack);
+	EnhancedInput->BindAction(Input_Jump, ETriggerEvent::Triggered, this, &ARogueCharacter::Jump);
 }
 
 // Called when the game starts or when spawned
@@ -67,10 +70,32 @@ void ARogueCharacter::Look(const FInputActionInstance& InValue)
 	AddControllerYawInput(InputValue.X);
 }
 
+void ARogueCharacter::RogueJump()
+{
+	Jump();
+}
+
 void ARogueCharacter::PrimaryAttack()
 {
 	
+	PlayAnimMontage(AttackMontage);
 	
+	FTimerHandle AttackTimerHandle;
+	const float AttackDelayTime = 0.2f;
+	
+	UNiagaraFunctionLibrary::SpawnSystemAttached(CastingEffect, GetMesh(), MuzzleSocketName, 
+		FVector::ZeroVector, FRotator::ZeroRotator,EAttachLocation::Type::SnapToTarget, true);
+	
+	UGameplayStatics::PlaySound2D(this, CastingSound);
+	
+	
+	GetWorldTimerManager().SetTimer(AttackTimerHandle, this, &ARogueCharacter::AttackTimerElapsed, AttackDelayTime);
+	
+
+}
+
+void ARogueCharacter::AttackTimerElapsed()
+{
 	
 	FVector SpawnLocation = GetMesh()->GetSocketLocation(MuzzleSocketName);
 	FRotator SpawnRotation = GetControlRotation();
@@ -78,8 +103,9 @@ void ARogueCharacter::PrimaryAttack()
 	SpawnParams.Instigator = this;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	
-	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnLocation, SpawnRotation, SpawnParams);
+	AActor* NewProjectile = GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnLocation, SpawnRotation, SpawnParams);
 	
+	MoveIgnoreActorAdd(NewProjectile);
 }
 
 // Called every frame
