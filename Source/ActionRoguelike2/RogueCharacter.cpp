@@ -70,11 +70,6 @@ void ARogueCharacter::Look(const FInputActionInstance& InValue)
 	AddControllerYawInput(InputValue.X);
 }
 
-void ARogueCharacter::RogueJump()
-{
-	Jump();
-}
-
 void ARogueCharacter::PrimaryAttack()
 {
 	

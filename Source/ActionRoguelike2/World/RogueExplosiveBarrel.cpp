@@ -3,13 +3,11 @@
 
 #include "RogueExplosiveBarrel.h"
 
+#include "NiagaraComponent.h"
+#include "Components/AudioComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
-
-class UStaticMeshComponent;
-class UNiagaraSystem;
-class URadialForceComponent;
-
+#include "PhysicsEngine/RadialForceComponent.h"
 
 // Sets default values
 ARogueExplosiveBarrel::ARogueExplosiveBarrel()
@@ -17,47 +15,54 @@ ARogueExplosiveBarrel::ARogueExplosiveBarrel()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
-	BarrelMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BarrelMesh"));
-	RootComponent = BarrelMesh;
+	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
+	MeshComponent->SetSimulatePhysics(true);
 	
-	ExplosionEffect = CreateDefaultSubobject<UNiagaraSystem>(TEXT("ExplosionEffect"));
+	MeshComponent->SetCollisionProfileName(TEXT("PhysicsActor"));
+	RootComponent = MeshComponent;
 	
 	RadialForceComp = CreateDefaultSubobject<URadialForceComponent>(TEXT("RadialForceComp"));
-	RadialForceComp->SetupAttachment(BarrelMesh);
+	RadialForceComp->SetupAttachment(MeshComponent);
+	
+	RadialForceComp->ImpulseStrength = 150000.0f;
+	RadialForceComp->Radius = 750.0f;
+	
+	RadialForceComp->bAutoActivate = false;
+	RadialForceComp->bIgnoreOwningActor = true;
+	
 }
 
-void ARogueExplosiveBarrel::PostInitializeComponents()
+
+float ARogueExplosiveBarrel::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
 {
-	Super::PostInitializeComponents();
+	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	
-	BarrelMesh->OnComponentHit.AddDynamic(this, &ARogueExplosiveBarrel::OnActorHit);
-	BarrelMesh->SetSimulatePhysics(true);
+	if (bExploded || GetWorldTimerManager().TimerExists(ExplosionTimerHandle))
+	{
+		return ActualDamage;
+	}
+	
+	ActiveBurningEffectComp = UNiagaraFunctionLibrary::SpawnSystemAttached(BurningEffect, MeshComponent, NAME_None,
+	FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::Type::SnapToTarget, true);
+
+	ActiveBurningSoundComp = UGameplayStatics::SpawnSoundAttached(BurningSound, MeshComponent);
+	
+	GetWorldTimerManager().SetTimer(ExplosionTimerHandle, this, &ARogueExplosiveBarrel::Explode, ExplosionDelay);
+
+	return ActualDamage;
 }
 
-void ARogueExplosiveBarrel::OnActorHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void ARogueExplosiveBarrel::Explode()
 {
+	bExploded = true;
 	
-	
-	FVector HitFromDirection = GetActorRotation().Vector();
-	
-	UGameplayStatics::ApplyPointDamage(this, 10.0f, HitFromDirection, Hit, GetInstigatorController(), OtherActor, DmgTypeClass);
-	
-	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ExplosionEffect, GetActorLocation());
-	
-	UGameplayStatics::PlaySoundAtLocation(this, ExplosionSound, GetActorLocation(), FRotator::ZeroRotator);
+	ActiveBurningEffectComp->Deactivate();
+	ActiveBurningSoundComp->Stop();
 
 	RadialForceComp->FireImpulse();
+	
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ExplosionEffect, GetActorLocation(), GetActorRotation());
+
+	UGameplayStatics::PlaySoundAtLocation(this, ExplosionSound, GetActorLocation(), FRotator::ZeroRotator);
 }
-
-
-// Called when the game starts or when spawned
-//{
-//	Super::BeginPlay();
-//}
-
-// Called every frame
-//void ARogueExplosiveBarrel::Tick(float DeltaTime)
-//{
-//	Super::Tick(DeltaTime);
-//}
 

@@ -66,8 +66,6 @@ protected:
 	
 	void Look(const FInputActionInstance& InValue);
 	
-	void RogueJump();
-	
 	void PrimaryAttack();
 	
 	void AttackTimerElapsed();
