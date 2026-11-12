@@ -16,8 +16,14 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction");
 	float InteractionRadius = 80;
+	
+	
+	UPROPERTY()
+	TObjectPtr<AActor> SelectedActor;
 
 public:
+	
+	void Interact();
 
 	URogueInteractionComponent();
 
