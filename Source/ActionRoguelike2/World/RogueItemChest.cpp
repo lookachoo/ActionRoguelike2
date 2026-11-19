@@ -11,9 +11,11 @@ ARogueItemChest::ARogueItemChest()
 	PrimaryActorTick.bStartWithTickEnabled = false;
 	
 	BaseMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("BaseMeshComponent");
+	BaseMeshComponent->SetCollisionProfileName("Interaction");
 	RootComponent = BaseMeshComponent;
 	
 	LidMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("LidMeshComponent");
+	LidMeshComponent->SetCollisionProfileName("NoCollision");
 	LidMeshComponent->SetupAttachment(BaseMeshComponent);
 }
 
