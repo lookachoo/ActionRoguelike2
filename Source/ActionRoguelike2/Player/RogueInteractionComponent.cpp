@@ -5,7 +5,6 @@
 
 #include "RogueGameTypes.h"
 #include "ActionRoguelike2/Core/RogueInteractionInterface.h"
-#include "Chaos/Deformable/ChaosDeformableCollisionsProxy.h"
 #include "Engine/OverlapResult.h"
 
 
@@ -18,11 +17,13 @@ URogueInteractionComponent::URogueInteractionComponent()
 
 void URogueInteractionComponent::Interact()
 {
-	IRogueInteractionInterface* InteractInterface =	Cast<IRogueInteractionInterface>(SelectedActor);
+	/*IRogueInteractionInterface* InteractInterface =	Cast<IRogueInteractionInterface>(SelectedActor);
 	if (InteractInterface)
 	{
 		InteractInterface->Interact();
-	}
+	}*/
+	
+	IRogueInteractionInterface::Execute_Interact(SelectedActor);
 }
 
 void URogueInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)

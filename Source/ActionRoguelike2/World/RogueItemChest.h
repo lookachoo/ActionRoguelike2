@@ -21,16 +21,19 @@ protected:
 	TObjectPtr<UStaticMeshComponent> LidMeshComponent;
 	
 	UPROPERTY(EditAnywhere, Category="Animation")
-	float AnimationSpeed = 50.0f;
+	float AnimationSpeed = 80.0f;
 	
 	UPROPERTY(EditAnywhere, Category="Animation")
 	float AnimationTargetPitch = 120.0f;
 	
 	float CurrentAnimationPitch = 0.0f;
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void ChestAnimationComplete();
 
 public:
 	
-	virtual void Interact() override;
+	virtual void Interact_Implementation() override;
 
 	virtual void Tick(float DeltaTime) override;
 	
